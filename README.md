@@ -1,2 +1,2 @@
 # immigrant-seek-back-end
-This is the backend of our application.
+This is the back-end of our application.
