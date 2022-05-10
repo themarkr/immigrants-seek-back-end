@@ -4,7 +4,7 @@
 
 ## Team
 
-  - __Product Owner__: Mark Rodgriguez
+  - __Product Owner__: Mark Rodriguez
   - __Scrum Master__: Liam Reboseno
   - __Development Team Members__: Jared Moore
 
