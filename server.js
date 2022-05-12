@@ -1,11 +1,14 @@
 const { response } = require('express');
-const express = require('express')
+const express = require('express');
+const cors = require('cors');
+
 const { pool } = require('./db')
 
 const app = express();
 const PORT = 3030;
 
-app.use(express.json())
+app.use(express.json());
+app.use(cors());
 
 const createTimeStamp = () => {
     var m = new Date();
