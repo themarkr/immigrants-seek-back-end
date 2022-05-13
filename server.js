@@ -32,12 +32,12 @@ app.post('/newUser', async(req, res) => {
     console.log(req.body)
 
     try {
-    const sql = `INSERT INTO users (first_name, last_name, email, password, profile_pic_link, is_lawyer, firm, bio)
+        const sql = `INSERT INTO users (first_name, last_name, email, password, profile_pic_link, is_lawyer, firm, bio)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) returning *;`
         const databaseResult = await pool.query(sql, [clientFirstName, clientLastName, clientEmail, clientPassword, null, false, null, null])
-        console.log(data)
+        console.log(databaseResult);
         res.status(201).json({ newClient: databaseResult.rows })
-    } catch {
+    } catch (err) {
         res.status(500).json({ message: `${err.message}` })
     }
 })
