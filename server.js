@@ -23,6 +23,25 @@ const createTimeStamp = () => {
     return dateString;
 }
 
+app.post('/newUser', async(req, res) => {
+    const clientFirstName = req.body.firstName
+    const clientLastName = req.body.lastName
+    const clientEmail = req.body.email
+    const clientPassword = req.body.password
+
+    console.log(req.body)
+
+    try {
+    const sql = `INSERT INTO users (first_name, last_name, email, password, profile_pic_link, is_lawyer, firm, bio)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8) returning *;`
+        const databaseResult = await pool.query(sql, [clientFirstName, clientLastName, clientEmail, clientPassword, null, false, null, null])
+        console.log(data)
+        res.status(201).json({ newClient: databaseResult.rows })
+    } catch {
+        res.status(500).json({ message: `${err.message}` })
+    }
+})
+
 // api route for getting the list of lawyers from the users table
 app.get('/lawyers', async(req, res) => {
 
