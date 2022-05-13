@@ -1,11 +1,9 @@
 const { Pool } = require('pg');
 
-
-
 const connectionDevelopment = {
     database: 'dreamsbridge', // Replace this with your DB name
-    user: 'markrrr', // If you have a different postgres user, replace here
-    password: '12', // If you have a postgres password, write it here
+    user: 'liam', // If you have a different postgres user, replace here
+    password: 'password', // If you have a postgres password, write it here
     host: 'localhost'
 }
 
