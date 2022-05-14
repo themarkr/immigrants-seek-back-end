@@ -23,6 +23,11 @@ const createTimeStamp = () => {
     return dateString;
 }
 
+// api route to add a new user to our users table TO BE USED FOR CLIENTS, LAWYERS WILL NOT SIGN UP THROUGH THIS ROUTE
+// REQUIREMENTS FOR THE BODY TO USE THIS ROUTE: firstName -> what is the first name of the user that is signing up?
+//                                              lastName -> what is the last name of the user that is signing up?
+//                                              email -> what is the email that they are signing up with?
+//                                              password -> what is the password they chose to sign in with this account?
 app.post('/newUser', async(req, res) => {
     const clientFirstName = req.body.firstName
     const clientLastName = req.body.lastName
@@ -36,13 +41,31 @@ app.post('/newUser', async(req, res) => {
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) returning *;`
         const databaseResult = await pool.query(sql, [clientFirstName, clientLastName, clientEmail, clientPassword, null, false, null, null])
         console.log(databaseResult);
-        res.status(201).json({ newClient: databaseResult.rows })
+        res.status(201).json({ newClient: databaseResult.rows[0] })
     } catch (err) {
         res.status(500).json({ message: `${err.message}` })
     }
 })
 
-// api route for getting the list of lawyers from the users table
+// API route to post a new review for a lawyer
+// REQUIREMENTS FOR THE BODY TO USE THIS ROUTE: lawyer_id -> who is the lawyer that this review is for?
+//                                              review_body -> what is the actualy text of the review?
+//                                              client_id -> which client left this review?
+app.post('/reviews', async(req, res) => {
+        const lawyerId = req.body.lawyer_id
+        const review = req.body.review_body
+        const reviewer = req.body.client_id
+
+        try {
+            const sql = `INSERT INTO reviews (review_body, lawyer_id, client_id)
+        VALUES ($1, $2, $3) returning *;`
+            const databaseResult = await pool.query(sql, [review, lawyerId, reviewer])
+            res.status(201).json({ newReview: databaseResult.rows[0] })
+        } catch (err) {
+            res.status(500).json({ message: `${err.message}` })
+        }
+    })
+    // api route for getting the list of lawyers from the users table
 app.get('/lawyers', async(req, res) => {
 
     try {
@@ -71,6 +94,40 @@ app.get('/lawyers/:id', async(req, res) => {
         res.status(500).json({ message: `${err.message}` });
     }
 })
+
+// API route to get a list of clients that a lawyer has 
+app.get('/lawyers/:id/clients', async(req, res) => {
+    const lawyerId = req.params.id;
+
+    try {
+        const sql = `SELECT person1, users.first_name, users.last_name, users.profile_pic_link, users.email, users.bio
+        from conversations
+        join users on users.user_id = person1
+        where person2 = $1
+        GROUP BY 1,2,3,4,5,6;`
+
+        const databaseResult = await pool.query(sql, [lawyerId])
+        res.status(200).json({ clients: databaseResult.rows })
+    } catch (err) {
+        res.status(500).json({ message: `${err.message}` });
+    }
+})
+
+// API route to get all reviews for a lawyer
+app.get('/lawyers/:id/reviews', async(req, res) => {
+    const lawyerId = req.params.id;
+    try {
+        const sql = `SELECT lawyer_id, review_body, client_id, users.first_name, users.last_name
+        from reviews
+        join users on reviews.client_id = users.user_id
+        where lawyer_id = $1;`
+        const databaseResult = await pool.query(sql, [lawyerId])
+        res.status(200).json({ reviews: databaseResult.rows })
+    } catch (err) {
+        res.status(500).json({ message: `${err.message}` });
+    }
+})
+
 
 // api route to get all conversations for a specific user TO BE USED FOR LAWYERS NOT CLIENTS
 app.get('/lawyers/:id/inbox', async(req, res) => {
@@ -167,23 +224,5 @@ app.get('/clients/:id/inbox', async(req, res) => {
         res.status(500).json({ message: `${err.message}` })
     }
 })
-
-// gets all messages for a specific conversation id sorted by 
-// app.get('/conversations/:id/messages', async(req, res) => {
-
-// })
-
-// route to get a list of all conversations for a specific user
-// you want to know who is on the other end of the conversations
-// the table provides the id for that person, but we need to join that 
-// information from the users table
-// and also get the most recent message from that conversation FROM  THAT PERSON
-// app.get('/conversations/:id', async(req, res) => {
-//     const userId = req.params.id;
-
-//     try {
-//         const sql = `SELECT `
-//     }
-// })
 
 app.listen(PORT)
