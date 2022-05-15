@@ -33,7 +33,7 @@ const createTimeStamp = () => {
 //                                              lastName -> what is the last name of the user that is signing up?
 //                                              email -> what is the email that they are signing up with?
 //                                              password -> what is the password they chose to sign in with this account?
-app.post('/newUser', async(req, res) => {
+app.post('/signup', async(req, res) => {
     const clientFirstName = req.body.firstName
     const clientLastName = req.body.lastName
     const clientEmail = req.body.email
@@ -47,10 +47,46 @@ app.post('/newUser', async(req, res) => {
         console.log(databaseResult);
         const userToken = generateToken(databaseResult.rows[0].user_id)
         res.status(201).json({
+            newUser: databaseResult.rows[0],
             token: userToken
         })
     } catch (err) {
         res.status(500).json({ message: `${err.message}` })
+    }
+})
+
+// API ROUTE TO LOGIN 
+// requirements for the body in order to use this route email -> used to query the database for the hashed password
+//                                                      password -> password used when signing up to test against decrpyted hashed password in DB
+app.post('/login', async(req, res) => {
+    try {
+        const { email, password } = req.body;
+        const sql = `SELECT * from users where email = $1`
+        const databaseResult = await pool.query(sql, [email])
+        if (!databaseResult.rows[0]) {
+            return res.status(401).json({
+                message: "You sure you have the right email?",
+            });
+        }
+        const isPasswordCorrect = await bcrypt.compare(password, databaseResult.rows[0].password)
+
+        if (!isPasswordCorrect) {
+            return res.status(401).json({
+                message: "You sure you have the right password?",
+            });
+        }
+
+        const token = generateToken();
+
+        return res.status(200).json({
+            userInfo: databaseResult.rows[0],
+            token
+        })
+
+    } catch (err) {
+        res.status(500).json({
+            message: `${err.message}`
+        })
     }
 })
 
