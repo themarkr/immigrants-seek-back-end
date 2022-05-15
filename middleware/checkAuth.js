@@ -1,3 +1,5 @@
+const { verifyToken } = require("../utils");
+
 const authCheck = (req, res, next) => {
     const headers = req.headers;
 
@@ -15,7 +17,15 @@ const authCheck = (req, res, next) => {
             data: "NOT AUTHORIZED"
         });
     }
-
+    let decodedToken
+    try {
+        decodedToken = verifyToken(authToken);
+    } catch (err) {
+        console.log(err.message);
+        return res.status(401).json({
+            data: "Not Authorized",
+        })
+    }
     next()
 };
 
