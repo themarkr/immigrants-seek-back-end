@@ -1,8 +1,13 @@
 const { response } = require('express');
 const express = require('express');
 const cors = require('cors');
+const bcrypt = require('bcrypt');
+const authCheck = require('./middleware/checkAuth');
+const { generateToken } = require('./utils');
 
-const { pool } = require('./db')
+
+const { pool } = require('./db');
+
 
 const app = express();
 const PORT = 3030;
@@ -33,15 +38,17 @@ app.post('/newUser', async(req, res) => {
     const clientLastName = req.body.lastName
     const clientEmail = req.body.email
     const clientPassword = req.body.password
-
-    console.log(req.body)
-
+    const saltRounds = 10;
     try {
+        const hashedPassword = await bcrypt.hash(clientPassword, saltRounds);
         const sql = `INSERT INTO users (first_name, last_name, email, password, profile_pic_link, is_lawyer, firm, bio)
     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) returning *;`
-        const databaseResult = await pool.query(sql, [clientFirstName, clientLastName, clientEmail, clientPassword, null, false, null, null])
+        const databaseResult = await pool.query(sql, [clientFirstName, clientLastName, clientEmail, hashedPassword, null, false, null, null])
         console.log(databaseResult);
-        res.status(201).json({ newClient: databaseResult.rows[0] })
+        const userToken = generateToken(databaseResult.rows[0].user_id)
+        res.status(201).json({
+            token: userToken
+        })
     } catch (err) {
         res.status(500).json({ message: `${err.message}` })
     }
@@ -100,10 +107,10 @@ app.get('/lawyers/:id/clients', async(req, res) => {
     const lawyerId = req.params.id;
 
     try {
-        const sql = `SELECT person1, users.first_name, users.last_name, users.profile_pic_link, users.email, users.bio
+        const sql = `SELECT client_id, users.first_name, users.last_name, users.profile_pic_link, users.email, users.bio
         from conversations
-        join users on users.user_id = person1
-        where person2 = $1
+        join users on users.user_id = client_id
+        where lawyer_id = $1
         GROUP BY 1,2,3,4,5,6;`
 
         const databaseResult = await pool.query(sql, [lawyerId])
@@ -134,11 +141,11 @@ app.get('/lawyers/:id/inbox', async(req, res) => {
     const lawyerId = req.params.id
     try {
 
-        const sql = `SELECT conversations.convo_id, conversations.person1, users.first_name, users.last_name, users.profile_pic_link
+        const sql = `SELECT conversations.convo_id, conversations.client_id, users.first_name, users.last_name, users.profile_pic_link
         from conversations
         join users
-        on conversations.person1 = users.user_id
-        where conversations.person2=$1
+        on conversations.client_id = users.user_id
+        where conversations.lawyer_id=$1
         GROUP BY
         1,2,3,4,5;`
 
@@ -150,14 +157,14 @@ app.get('/lawyers/:id/inbox', async(req, res) => {
 })
 
 // api route to add a new entry to the conversations table
-// requirements for the body -> person1 -> user id (client)
-//                              person2 -> user id (lawyer)
-app.post('/conversations', async(req, res) => {
-    const client = req.body.person1;
-    const lawyer = req.body.person2;
+// requirements for the body -> client -> user id (client)
+//                              lawyer -> user id (lawyer)
+app.post('/conversations', authCheck, async(req, res) => {
+    const client = req.body.client_id;
+    const lawyer = req.body.lawyer_id;
 
     try {
-        const sql = `INSERT INTO conversations (person1, person2)
+        const sql = `INSERT INTO conversations (client_id, lawyer_id)
         VALUES ($1, $2) returning *;`
         const databaseResult = await pool.query(sql, [client, lawyer]);
         res.status(201).json({ conversation: databaseResult.rows })
@@ -210,11 +217,11 @@ app.get('/clients/:id/inbox', async(req, res) => {
     const clientId = req.params.id
     try {
 
-        const sql = `SELECT conversations.convo_id, conversations.person2, users.first_name, users.last_name, users.profile_pic_link
+        const sql = `SELECT conversations.convo_id, conversations.lawyer_id, users.first_name, users.last_name, users.profile_pic_link
         from conversations
         join users
-        on conversations.person2 = users.user_id
-        where conversations.person1=$1
+        on conversations.lawyer_id = users.user_id
+        where conversations.client_id=$1
         GROUP BY
         1,2,3,4,5;`
 
