@@ -5,10 +5,10 @@
 exports.up = function(knex) {
     return knex.schema.createTable('conversations', (table) => {
         table.increments('convo_id', { primaryKey: true });
-        table.integer("person1").notNullable();
-        table.foreign('person1').references('user_id').inTable("users");
-        table.integer('person2').notNullable();
-        table.foreign('person2').references('user_id').inTable('users');
+        table.integer("client_id").notNullable();
+        table.foreign('client_id').references('user_id').inTable("users");
+        table.integer('lawyer_id').notNullable();
+        table.foreign('lawyer_id').references('user_id').inTable('users');
     })
 };
 
