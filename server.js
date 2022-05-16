@@ -125,6 +125,55 @@ app.get('/lawyers', async(req, res) => {
     }
 })
 
+// api route to get all reviews
+app.get('/allReviews', async(req, res) => {
+    try {
+        const databaseResult = await pool.query("SELECT * FROM reviews")
+        console.log(databaseResult)
+        res.json({
+            data: databaseResult.rows
+        });
+    } catch(err){
+        res.statusCode = 500;
+        res.json({
+            message: `WHOOPS! ${err.message}`
+        })
+    }
+})
+
+//api route to delete a specific review
+app.delete('/reviews/:id', async(req, res) => {
+    const reviewId = req.params.id
+    try{
+        const sql = `DELETE FROM reviews WHERE review_id = $1`
+        const databaseResult = await pool.query(sql, [reviewId])
+        res.sendStatus(204)
+    } catch(err){
+        res.statusCode = 500;
+        res.json({
+            message: `WHOOPS! ${err.message}`
+        })
+    }
+})
+
+//api to patch / edit a specific review
+app.patch('/reviews/:id', async(req, res) => {
+    const reviewId = req.params.id
+    const reviewBody = req.body.review_body
+    try{
+        const sql = `UPDATE reviews SET review_body = $2 WHERE review_id = $1`;
+        const databaseResult = await pool.query(sql, [reviewId, reviewBody])
+        res.status(200).json({
+            databaseResult
+        })
+    }catch(err){
+        res.statusCode = 500;
+        res.json({
+            message: `WHOOPS! ${err.message}`
+        })
+    }
+})
+
 // api route to get a specific lawyers information
 app.get('/lawyers/:id', async(req, res) => {
     const lawyerId = req.params.id;
@@ -170,7 +219,6 @@ app.get('/lawyers/:id/reviews', async(req, res) => {
         res.status(500).json({ message: `${err.message}` });
     }
 })
-
 
 // api route to get all conversations for a specific user TO BE USED FOR LAWYERS NOT CLIENTS
 app.get('/lawyers/:id/inbox', async(req, res) => {
