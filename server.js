@@ -174,6 +174,37 @@ app.patch('/reviews/:id', async(req, res) => {
     }
 })
 
+// api route to get all states
+app.get('/states', async(req, res) => {
+    try{    
+        const databaseResult = await pool.query(`SELECT * FROM states`)
+        res.json({
+            data: databaseResult.rows
+        });
+    }catch(err){
+        res.statusCode = 500;
+        res.json({
+            message: `WHOOPS! ${err.message}`
+        })
+    }
+})
+
+// api route to get all lawyer firms
+app.get('/firms', async(req, res) => {
+    try{
+        const databaseResult = await pool.query(`SELECT firm FROM users where firm IS NOT NULL`)
+        res.json({
+            data: databaseResult.rows
+        });
+    }catch(err){
+        res.statusCode = 500;
+        res.json({
+            message: `WHOOPS! ${err.message}`
+        })
+    }
+})
+
+
 // api route to get a specific lawyers information
 app.get('/lawyers/:id', async(req, res) => {
     const lawyerId = req.params.id;
