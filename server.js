@@ -174,6 +174,60 @@ app.patch('/reviews/:id', async(req, res) => {
     }
 })
 
+// api route to edit user first name
+app.patch('/users/firstName/:id', async(req, res) => {
+    const userId = req.params.id
+    const firstName = req.body.firstName
+    try{
+        const sql = `UPDATE users SET first_name = $2 WHERE user_id = $1`
+        const databaseResult = await pool.query(sql, [userId, firstName])
+        res.status(200).json({
+            databaseResult
+        })
+    } catch(err){
+        res.statusCode = 500;
+        res.json({
+            message: `WHOOPS! ${err.message}`
+        })
+    }
+})
+
+// api route to edit user last name
+app.patch('/users/lastName/:id', async(req, res) => {
+    const userId = req.params.id
+    const lastName = req.body.lastName
+    try{
+        const sql = `UPDATE users SET last_name = $2 WHERE user_id = $1`
+        const databaseResult = await pool.query(sql, [userId, lastName])
+        res.status(200).json({
+            databaseResult
+        })
+    } catch(err){
+        res.statusCode = 500;
+        res.json({
+            message: `WHOOPS! ${err.message}`
+        })
+    }
+})
+
+// api route to edit user email // NOT SURE IF THIS WILL AFFECT THE PASSWORD CONNECTED WITH EMAIL SO... USE WITH CAUTION!!!!
+app.patch('/users/email/:id', async(req, res) => {
+    const userId = req.params.id
+    const email = req.body.email
+    try{
+        const sql = `UPDATE users SET email = $2 WHERE user_id = $1`
+        const databaseResult = await pool.query(sql, [userId, email])
+        res.status(200).json({
+            databaseResult
+        })
+    } catch(err){
+        res.statusCode = 500;
+        res.json({
+            message: `WHOOPS! ${err.message}`
+        })
+    }
+})
+
 // api route to get all states
 app.get('/states', async(req, res) => {
     try{    
