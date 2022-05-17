@@ -174,6 +174,23 @@ app.patch('/reviews/:id', async(req, res) => {
     }
 })
 
+// api route to get client name from review
+app.get('/review/:id/user', async(req, res) => {
+    // const reviewId = req.params.id
+    try{
+        const sql = `SELECT client_id, first_name, last_name, review_body from reviews join users on users.user_id = client_id`
+        const databaseResult = await pool.query(sql)
+        res.json({
+            data: databaseResult.rows
+        })
+    }catch(err){
+        res.statusCode = 500;
+        res.json({
+            message: `WHOOPS! ${err.message}`
+        })
+    }
+})
+
 // api route to edit user first name
 app.patch('/users/firstName/:id', async(req, res) => {
     const userId = req.params.id
