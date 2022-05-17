@@ -325,6 +325,25 @@ app.get('/lawyers/:id/inbox', async(req, res) => {
     }
 })
 
+app.get('/clients/:id/inbox', async(req, res) => {
+    const clientId = req.params.id;
+    try {
+
+        const sql = `SELECT conversations.convo_id, conversations.lawyer_id, users.first_name, users.last_name, users.profile_pic_link
+        from conversations
+        join users
+        on conversations.lawyer_id = users.user_id
+        where conversations.client_id=$1
+        GROUP BY
+        1,2,3,4,5;`
+
+        const databaseResult = await pool.query(sql, [clientId])
+        res.status(200).json({ conversations: databaseResult.rows })
+    } catch (err) {
+        res.status(500).json({ message: `${err.message}` })
+    }
+})
+
 // api route to add a new entry to the conversations table
 // requirements for the body -> client -> user id (client)
 //                              lawyer -> user id (lawyer)
@@ -337,6 +356,22 @@ app.post('/conversations', authCheck, async(req, res) => {
         VALUES ($1, $2) returning *;`
         const databaseResult = await pool.query(sql, [client, lawyer]);
         res.status(201).json({ conversation: databaseResult.rows })
+    } catch (err) {
+        res.status(500).json({ message: `${err.message}` })
+    }
+})
+
+// API route to get all messages from a conversation
+
+app.get('/conversations/:id/all', async(req, res) => {
+    const convoId = req.params.id;
+
+    try {
+        const sql = `SELECT * 
+        FROM messages
+        where convo_id = $1;`
+        const databaseResult = await pool.query(sql, [convoId]);
+        res.status(200).json({ allMessages: databaseResult.rows })
     } catch (err) {
         res.status(500).json({ message: `${err.message}` })
     }
