@@ -228,6 +228,22 @@ app.post('/conversations', authCheck, async(req, res) => {
     }
 })
 
+// API route to get all messages from a conversation
+
+app.get('/conversations/:id/all', async(req, res) => {
+    const convoId = req.params.id;
+
+    try {
+        const sql = `SELECT * 
+        FROM messages
+        where convo_id = $1;`
+        const databaseResult = await pool.query(sql, [convoId]);
+        res.status(200).json({ allMessages: databaseResult.rows })
+    } catch (err) {
+        res.status(500).json({ message: `${err.message}` })
+    }
+})
+
 //api route to get the most recent message from a conversation
 app.get('/conversations/:id/mostRecent', async(req, res) => {
     const convoId = req.params.id;
