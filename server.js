@@ -133,7 +133,7 @@ app.get('/allReviews', async(req, res) => {
         res.json({
             data: databaseResult.rows
         });
-    } catch(err){
+    } catch (err) {
         res.statusCode = 500;
         res.json({
             message: `WHOOPS! ${err.message}`
@@ -144,11 +144,11 @@ app.get('/allReviews', async(req, res) => {
 //api route to delete a specific review
 app.delete('/reviews/:id', async(req, res) => {
     const reviewId = req.params.id
-    try{
+    try {
         const sql = `DELETE FROM reviews WHERE review_id = $1`
         const databaseResult = await pool.query(sql, [reviewId])
         res.sendStatus(204)
-    } catch(err){
+    } catch (err) {
         res.statusCode = 500;
         res.json({
             message: `WHOOPS! ${err.message}`
@@ -160,13 +160,13 @@ app.delete('/reviews/:id', async(req, res) => {
 app.patch('/reviews/:id', async(req, res) => {
     const reviewId = req.params.id
     const reviewBody = req.body.review_body
-    try{
+    try {
         const sql = `UPDATE reviews SET review_body = $2 WHERE review_id = $1`;
         const databaseResult = await pool.query(sql, [reviewId, reviewBody])
         res.status(200).json({
             databaseResult
         })
-    }catch(err){
+    } catch (err) {
         res.statusCode = 500;
         res.json({
             message: `WHOOPS! ${err.message}`
@@ -178,13 +178,13 @@ app.patch('/reviews/:id', async(req, res) => {
 app.patch('/users/firstName/:id', async(req, res) => {
     const userId = req.params.id
     const firstName = req.body.firstName
-    try{
+    try {
         const sql = `UPDATE users SET first_name = $2 WHERE user_id = $1`
         const databaseResult = await pool.query(sql, [userId, firstName])
         res.status(200).json({
             databaseResult
         })
-    } catch(err){
+    } catch (err) {
         res.statusCode = 500;
         res.json({
             message: `WHOOPS! ${err.message}`
@@ -196,13 +196,13 @@ app.patch('/users/firstName/:id', async(req, res) => {
 app.patch('/users/lastName/:id', async(req, res) => {
     const userId = req.params.id
     const lastName = req.body.lastName
-    try{
+    try {
         const sql = `UPDATE users SET last_name = $2 WHERE user_id = $1`
         const databaseResult = await pool.query(sql, [userId, lastName])
         res.status(200).json({
             databaseResult
         })
-    } catch(err){
+    } catch (err) {
         res.statusCode = 500;
         res.json({
             message: `WHOOPS! ${err.message}`
@@ -214,13 +214,13 @@ app.patch('/users/lastName/:id', async(req, res) => {
 app.patch('/users/email/:id', async(req, res) => {
     const userId = req.params.id
     const email = req.body.email
-    try{
+    try {
         const sql = `UPDATE users SET email = $2 WHERE user_id = $1`
         const databaseResult = await pool.query(sql, [userId, email])
         res.status(200).json({
             databaseResult
         })
-    } catch(err){
+    } catch (err) {
         res.statusCode = 500;
         res.json({
             message: `WHOOPS! ${err.message}`
@@ -230,12 +230,12 @@ app.patch('/users/email/:id', async(req, res) => {
 
 // api route to get all states
 app.get('/states', async(req, res) => {
-    try{    
+    try {
         const databaseResult = await pool.query(`SELECT * FROM states`)
         res.json({
             data: databaseResult.rows
         });
-    }catch(err){
+    } catch (err) {
         res.statusCode = 500;
         res.json({
             message: `WHOOPS! ${err.message}`
@@ -245,12 +245,12 @@ app.get('/states', async(req, res) => {
 
 // api route to get all lawyer firms
 app.get('/firms', async(req, res) => {
-    try{
+    try {
         const databaseResult = await pool.query(`SELECT DISTINCT firm FROM users where firm IS NOT NULL`)
         res.json({
             data: databaseResult.rows
         });
-    }catch(err){
+    } catch (err) {
         res.statusCode = 500;
         res.json({
             message: `WHOOPS! ${err.message}`
@@ -344,9 +344,22 @@ app.get('/clients/:id/inbox', async(req, res) => {
     }
 })
 
-// api route to add a new entry to the conversations table
-// requirements for the body -> client -> user id (client)
-//                              lawyer -> user id (lawyer)
+app.post('/verifyConversations', async(req, res) => {
+        const client = req.body.client_id;
+        const lawyer = req.body.lawyer_id;
+        try {
+            const sql = `SELECT convo_id 
+        from conversations
+        WHERE conversations.client_id = $1 AND conversations.lawyer_id = $2;`
+            const databaseResult = await pool.query(sql, [client, lawyer])
+            res.status(200).json({ data: databaseResult.rows })
+        } catch (err) {
+            res.status(500).json({ message: `${err.message}` })
+        }
+    })
+    // api route to add a new entry to the conversations table
+    // requirements for the body -> client -> user id (client)
+    //                              lawyer -> user id (lawyer)
 app.post('/conversations', authCheck, async(req, res) => {
     const client = req.body.client_id;
     const lawyer = req.body.lawyer_id;
