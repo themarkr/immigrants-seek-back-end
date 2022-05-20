@@ -311,7 +311,7 @@ app.get('/lawyers/:id/clients', async(req, res) => {
 app.get('/lawyers/:id/reviews', async(req, res) => {
     const lawyerId = req.params.id;
     try {
-        const sql = `SELECT lawyer_id, review_body, client_id, users.first_name, users.last_name
+        const sql = `SELECT lawyer_id, review_body, review_id, client_id, users.first_name, users.last_name
         from reviews
         join users on reviews.client_id = users.user_id
         where lawyer_id = $1;`
