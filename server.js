@@ -177,13 +177,13 @@ app.patch('/reviews/:id', async(req, res) => {
 // api route to get client name from review
 app.get('/review/:id/user', async(req, res) => {
     // const reviewId = req.params.id
-    try{
+    try {
         const sql = `SELECT client_id, first_name, last_name, review_body from reviews join users on users.user_id = client_id`
         const databaseResult = await pool.query(sql)
         res.json({
             data: databaseResult.rows
         })
-    }catch(err){
+    } catch (err) {
         res.statusCode = 500;
         res.json({
             message: `WHOOPS! ${err.message}`
@@ -441,6 +441,18 @@ app.post('/conversations/:id', async(req, res) => {
 
         const databaseResult = await pool.query(sql, [convoId, messageBody, timeSent, bool])
         res.status(201).json({ newMessage: databaseResult.rows })
+    } catch (err) {
+        res.status(500).json({ message: `${err.message}` })
+    }
+})
+
+app.delete('/conversations/:id', async(req, res) => {
+    const convoId = parseInt(req.params.id, 10);
+    // comment to restart 
+    try {
+        const sql = `DELETE FROM conversations WHERE convo_id = $1;`
+        await pool.query(sql, [convoId])
+        res.status(204).json({ message: `conversation deleted` })
     } catch (err) {
         res.status(500).json({ message: `${err.message}` })
     }
