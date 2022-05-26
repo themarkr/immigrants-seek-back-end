@@ -300,6 +300,23 @@ app.get('/firms', async(req, res) => {
     }
 })
 
+//api route to get specific user
+app.get('/user/:id', async(req, res) => {
+    const userId = req.params.id
+    try{
+        const sql = `SELECT * from users where user_id = $1`
+        const databaseResult = await pool.query(sql, [userId])
+        res.json({
+            data: databaseResult.rows
+        })
+    } catch(err){
+        res.statusCode = 500;
+        res.json({
+            message: `WHOOPS! ${err.message}`
+        })
+    }
+})
+
 
 // api route to get a specific lawyers information
 app.get('/lawyers/:id', async(req, res) => {
