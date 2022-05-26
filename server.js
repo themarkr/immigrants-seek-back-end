@@ -54,10 +54,33 @@ app.post('/signup', async(req, res) => {
         res.status(500).json({ message: `${err.message}` })
     }
 })
-
-// API ROUTE TO LOGIN 
-// requirements for the body in order to use this route email -> used to query the database for the hashed password
-//                                                      password -> password used when signing up to test against decrpyted hashed password in DB
+app.post('/lawyer/signup', async(req, res) => {
+        const lawyerFirstName = req.body.firstName
+        const lawyerLastName = req.body.lastName
+        const lawyerEmail = req.body.email
+        const lawyerPassword = req.body.password
+        const lawyerFirm = req.body.firm
+        const lawyerBio = req.body.bio
+        const lawyerImg = req.body.pfpLink
+        const saltRounds = 10;
+        try {
+            const hashedPassword = await bcrypt.hash(lawyerPassword, saltRounds);
+            const sql = `INSERT INTO users (first_name, last_name, email, password, profile_pic_link, is_lawyer, firm, bio)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8) returning *;`
+            const databaseResult = await pool.query(sql, [lawyerFirstName, lawyerLastName, lawyerEmail, hashedPassword, lawyerImg, true, lawyerFirm, lawyerBio])
+            console.log(databaseResult);
+            const userToken = generateToken(databaseResult.rows[0].user_id)
+            res.status(201).json({
+                newUser: databaseResult.rows[0],
+                token: userToken
+            })
+        } catch (err) {
+            res.status(500).json({ message: `${err.message}` })
+        }
+    })
+    // API ROUTE TO LOGIN 
+    // requirements for the body in order to use this route email -> used to query the database for the hashed password
+    //                                                      password -> password used when signing up to test against decrpyted hashed password in DB
 app.post('/login', async(req, res) => {
     try {
         const { email, password } = req.body;
@@ -89,6 +112,8 @@ app.post('/login', async(req, res) => {
         })
     }
 })
+
+
 
 // API route to post a new review for a lawyer
 // REQUIREMENTS FOR THE BODY TO USE THIS ROUTE: lawyer_id -> who is the lawyer that this review is for?
