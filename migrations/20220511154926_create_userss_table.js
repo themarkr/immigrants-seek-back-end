@@ -12,7 +12,7 @@ exports.up = function(knex) {
         table.string('profile_pic_link', 600);
         table.boolean('is_lawyer');
         table.string('firm').nullable();
-        table.string('bio', 500).nullable()
+        table.string('bio', 2000).nullable()
     })
 };
 
