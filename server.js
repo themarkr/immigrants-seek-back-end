@@ -128,7 +128,9 @@ app.post('/reviews', async(req, res) => {
             const sql = `INSERT INTO reviews (review_body, lawyer_id, client_id)
         VALUES ($1, $2, $3) returning *;`
             const databaseResult = await pool.query(sql, [review, lawyerId, reviewer])
-            res.status(201).json({ newReview: databaseResult.rows[0] })
+            const userInfo = await pool.query(`SELECT first_name, last_name from users where user_id = $1;`,[reviewer])
+            res.status(201).json({ newReview: databaseResult.rows[0],
+            reviewerInfo: userInfo.rows[0] })
         } catch (err) {
             res.status(500).json({ message: `${err.message}` })
         }
